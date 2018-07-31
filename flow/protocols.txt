@@ -1,0 +1,31 @@
+Log Producer and Consumer In-Wire Binary Protocol
+-------------------------------------------------
+
+Ver 0.1a DRAFT written by Didiet Noor
+
+As log mostly text, the protocol is very simple. It's based on pascal string.
+
+0                       4           8
++-----------------------+-----------+
+| 'BARL' (0x0x4C524142) | CRC32     |
++-----------------------+-----------+ 8
+| ulen                  | clen      |
++-----------------------+-----------+ 16
+|      TIMESTAMP (64-BIT)           |
++-----------------------------------+ 24
+|        RESERVED                   |
++-----------------------------------+ 32
+|                                   |
+|     LOG DATA (variable length)    |
+|                                   |
+
+The packet is started with `BARL' character to signify the start of the packet signature.
+
+- Flags : The Flags (as explained below)
+- crc32 : checksum of the string
+- ulen  : Uncompressed length
+- clen  : Compressed length, if not compressed SHOULD BE 0
+
+
+
+
