@@ -114,18 +114,6 @@
   revision = "984a73625de3138f44deb38d00878fab39eb6447"
 
 [[projects]]
-  name = "github.com/klauspost/cpuid"
-  packages = ["."]
-  revision = "ae7887de9fa5d2db4eaa8174a7eff2c1ac00f2da"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/klauspost/reedsolomon"
-  packages = ["."]
-  revision = "6bb6130ff6a76a904c1841707d65603aec9cc288"
-  version = "v1.6"
-
-[[projects]]
   name = "github.com/mailru/easyjson"
   packages = [
     ".",
@@ -181,59 +169,19 @@
   version = "v1.0.5"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/templexxx/cpufeat"
-  packages = ["."]
-  revision = "cef66df7f161dee20f4d650da7268d77eaaec82d"
-
-[[projects]]
-  name = "github.com/templexxx/xor"
-  packages = ["."]
-  revision = "0af8e873c554da75f37f2049cdffda804533d44c"
-  version = "0.1.2"
-
-[[projects]]
-  name = "github.com/tjfoc/gmsm"
-  packages = ["sm4"]
-  revision = "98aa888b79d8de04afe0fccf45ed10594efc858b"
-  version = "v1.1"
-
-[[projects]]
   name = "github.com/urfave/cli"
   packages = ["."]
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
   version = "v1.20.0"
 
 [[projects]]
-  name = "github.com/xtaci/kcp-go"
-  packages = ["."]
-  revision = "42bc1dfefff592fdb3affa793980c4f6ab4213e5"
-  version = "v3.25"
-
-[[projects]]
   name = "golang.org/x/crypto"
-  packages = [
-    "blowfish",
-    "cast5",
-    "pbkdf2",
-    "salsa20",
-    "salsa20/salsa",
-    "ssh/terminal",
-    "tea",
-    "twofish",
-    "xtea"
-  ]
+  packages = ["ssh/terminal"]
   revision = "df8d4716b3472e4a531c33cedbe537dae921a1a9"
 
 [[projects]]
   name = "golang.org/x/net"
-  packages = [
-    "bpf",
-    "context",
-    "internal/iana",
-    "internal/socket",
-    "ipv4"
-  ]
+  packages = ["context"]
   revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
@@ -247,6 +195,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cd0080b61f6fc005da2b4bbb111458cf039843b92ef5677d39a60da0440cac9d"
+  inputs-digest = "d47ba025d333acfd6b7954df010654e2107ed509badfafa69c5d9eea242c7f11"
   solver-name = "gps-cdcl"
   solver-version = 1

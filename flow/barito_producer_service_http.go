@@ -9,11 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type BaritoProducerServiceHTTP interface {
-	BaritoProducerService
-	ServeHTTP(rw http.ResponseWriter, req *http.Request)
-}
-
 type baritoProducerService struct {
 	factory       KafkaFactory
 	addr          string
@@ -26,7 +21,7 @@ type baritoProducerService struct {
 	limiter  RateLimiter
 }
 
-func newBaritoProducerServiceHTTP(factory KafkaFactory, addr string, maxTps int, topicSuffix string, newEventTopic string) BaritoProducerServiceHTTP {
+func newBaritoProducerServiceHTTP(factory KafkaFactory, addr string, maxTps int, topicSuffix string, newEventTopic string) BaritoProducerService {
 	return &baritoProducerService{
 		factory:       factory,
 		addr:          addr,
