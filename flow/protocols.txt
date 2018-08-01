@@ -1,13 +1,20 @@
 Log Producer and Consumer In-Wire Binary Protocol
 -------------------------------------------------
 
-Ver 0.1a DRAFT written by Didiet Noor
+Revision
+--------
 
-As log mostly text, the protocol is very simple. It's based on pascal string.
+> Ver 0.1 DRAFT - July 31, 2018
+> Ver 0.2 DRAFT - Aug 1, 2018
+
+
+As log mostly text, the protocol is very simple. The protocol is delivered using UDP transport to reduce latency.
+Log is usually large, therefore we have compression built-in. Nature of UDP is unreliable, so we'll use KCP to mitigate
+some of the unreliability.
 
 0                       4           8
 +-----------------------+-----------+
-| 'BARL' (0x0x4C524142) | CRC32     |
+| 'BLRQ' (0x0x51524C42) | CRC32     |
 +-----------------------+-----------+ 8
 | ulen                  | clen      |
 +-----------------------+-----------+ 16
@@ -22,10 +29,10 @@ As log mostly text, the protocol is very simple. It's based on pascal string.
 The packet is started with `BARL' character to signify the start of the packet signature.
 
 - Flags : The Flags (as explained below)
-- crc32 : checksum of the string
+- crc32 : checksum of the log data
 - ulen  : Uncompressed length
 - clen  : Compressed length, if not compressed SHOULD BE 0
 
-
+All length should be a BYTE length not the string length as they may differ.
 
 

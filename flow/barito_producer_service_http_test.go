@@ -11,7 +11,6 @@ import (
 
 	"github.com/BaritoLog/barito-flow/mock"
 	. "github.com/BaritoLog/go-boilerplate/testkit"
-	"github.com/BaritoLog/go-boilerplate/timekit"
 	"github.com/golang/mock/gomock"
 )
 
@@ -45,9 +44,11 @@ func TestBaritoProducerService_ServeHTTP_OnBadRequest(t *testing.T) {
 	admin.EXPECT().Close().AnyTimes()
 
 	agent := &baritoProducerService{
-		producer:    producer,
-		topicSuffix: "_logs",
-		admin:       admin,
+		baritoProducerConfig: baritoProducerConfig{
+			topicSuffix: "_logs",
+		},
+		producer: producer,
+		admin:    admin,
 	}
 	defer agent.Close()
 
@@ -71,10 +72,13 @@ func TestBaritoProducerService_ServeHTTP_OnStoreError(t *testing.T) {
 	limiter := NewDummyRateLimiter()
 
 	agent := &baritoProducerService{
-		producer:    producer,
-		topicSuffix: "_logs",
-		admin:       admin,
-		limiter:     limiter,
+		baritoProducerConfig: baritoProducerConfig{
+			topicSuffix: "_logs",
+		},
+
+		producer: producer,
+		admin:    admin,
+		limiter:  limiter,
 	}
 
 	req, _ := http.NewRequest("POST", "/", bytes.NewReader(sampleRawTimber()))
@@ -97,10 +101,13 @@ func TestBaritoProducerService_ServeHTTP_OnCreateTopicError(t *testing.T) {
 	limiter := NewDummyRateLimiter()
 
 	agent := &baritoProducerService{
-		producer:    producer,
-		topicSuffix: "_logs",
-		admin:       admin,
-		limiter:     limiter,
+		baritoProducerConfig: baritoProducerConfig{
+			topicSuffix: "_logs",
+		},
+
+		producer: producer,
+		admin:    admin,
+		limiter:  limiter,
 	}
 
 	req, _ := http.NewRequest("POST", "/", bytes.NewReader(sampleRawTimber()))
@@ -125,10 +132,13 @@ func TestBaritoProducerService_ServeHTTP_OnSuccess(t *testing.T) {
 	limiter := NewDummyRateLimiter()
 
 	agent := &baritoProducerService{
-		producer:    producer,
-		topicSuffix: "_logs",
-		admin:       admin,
-		limiter:     limiter,
+		baritoProducerConfig: baritoProducerConfig{
+			topicSuffix: "_logs",
+		},
+
+		producer: producer,
+		admin:    admin,
+		limiter:  limiter,
 	}
 
 	req, _ := http.NewRequest("POST", "/", bytes.NewReader(sampleRawTimber()))
@@ -142,14 +152,4 @@ func TestBaritoProducerService_ServeHTTP_OnSuccess(t *testing.T) {
 
 	FatalIf(t, result.Topic != "some_topic_logs", "wrong result.Topic")
 	FatalIf(t, result.IsNewTopic != true, "wrong result.IsNewTopic")
-}
-
-func TestBaritoProducerService_Start_ErrorMakeSyncProducer(t *testing.T) {
-	factory := NewDummyKafkaFactory()
-	factory.Expect_MakeSyncProducerFunc_AlwaysError("some-error")
-
-	service := NewBaritoProducerService(factory, "addr", 1, "_logs", "new_topic_events")
-	err := service.Start()
-
-	FatalIfWrongError(t, err, "Make sync producer failed: some-error")
 }

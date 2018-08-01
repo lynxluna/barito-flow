@@ -1,18 +1,12 @@
 package flow
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"testing"
-
-	"github.com/BaritoLog/barito-flow/mock"
 	. "github.com/BaritoLog/go-boilerplate/testkit"
 	"github.com/BaritoLog/go-boilerplate/timekit"
 	"github.com/golang/mock/gomock"
+
+	"net/http"
+	"testing"
 )
 
 func TestBaritoProducerService_Start_ErrorMakeSyncProducer(t *testing.T) {
@@ -43,10 +37,12 @@ func TestBaritoProducerService_Start(t *testing.T) {
 	factory.Expect_MakeKafkaAdmin_ProducerServiceSuccess(ctrl, []string{})
 
 	service := &baritoProducerService{
-		factory:       factory,
-		addr:          ":24400",
-		topicSuffix:   "_logs",
-		newEventTopic: "new_topic_event",
+		baritoProducerConfig: baritoProducerConfig{
+			topicSuffix:   "_logs",
+			addr:          ":24400",
+			newEventTopic: "new_topic_event",
+		},
+		factory: factory,
 	}
 
 	var err error

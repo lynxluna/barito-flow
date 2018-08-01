@@ -9,12 +9,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type baritoProducerService struct {
-	factory       KafkaFactory
+type baritoProducerConfig struct {
 	addr          string
 	topicSuffix   string
 	newEventTopic string
+}
 
+type baritoProducerService struct {
+	baritoProducerConfig
+
+	factory  KafkaFactory
 	producer sarama.SyncProducer
 	admin    KafkaAdmin
 	server   *http.Server
@@ -23,10 +27,12 @@ type baritoProducerService struct {
 
 func newBaritoProducerServiceHTTP(factory KafkaFactory, addr string, maxTps int, topicSuffix string, newEventTopic string) BaritoProducerService {
 	return &baritoProducerService{
-		factory:       factory,
-		addr:          addr,
-		topicSuffix:   topicSuffix,
-		newEventTopic: newEventTopic,
+		factory: factory,
+		baritoProducerConfig: baritoProducerConfig{
+			addr:          addr,
+			topicSuffix:   topicSuffix,
+			newEventTopic: newEventTopic,
+		},
 	}
 }
 
