@@ -1,16 +1,12 @@
 package flow
 
 import (
-	// kcp "github.com/xtaci/kcp-go"
-	"github.com/xtaci/smux"
-
-	// "github.com/BaritoLog/go-boilerplate/errkit"
-	// "github.com/BaritoLog/go-boilerplate/timekit"
+	"errors"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
-
-	"bytes"
-	"errors"
+	kcp "github.com/xtaci/kcp-go"
+	"github.com/xtaci/smux"
 	"io"
 	"time"
 )
@@ -29,6 +25,8 @@ type baritoProducerServiceKCP struct {
 	producer sarama.SyncProducer
 	admin    KafkaAdmin
 	limiter  RateLimiter
+
+	listener *kcp.Listener
 }
 
 func newBaritoProducerServiceKCP(factory KafkaFactory, addr string, maxTps int, topicSuffix string, newEventTopic string) BaritoProducerService {
@@ -45,70 +43,30 @@ func newBaritoProducerServiceKCP(factory KafkaFactory, addr string, maxTps int, 
 }
 
 func (s *baritoProducerServiceKCP) Start() error {
-	return errors.New("Not implemented")
+	listener, err := kcp.ListenWithOptions(s.config.addr, nil, 0, 0)
+
+	if err != nil {
+		return err
+	}
+
+	s.listener = listener
+
+	for {
+		if conn, err := s.listener.AcceptKCP(); err == nil {
+			go s.handleMux(conn)
+		} else {
+			log.Errorf("Error %+v", err)
+		}
+	}
 }
 
 func (s *baritoProducerServiceKCP) Close() {
 }
 
-func decodePacket(r io.Reader, w io.Writer) error {
-	return errors.New("Not implemented")
-}
-
-func handleClient(stream io.ReadCloser) {
-	defer stream.Close()
-
-	var buf bytes.Buffer
-	err := decodePacket(stream, &buf)
-
-	if nil != err {
-		log.Errorf("Error decoding packet!")
-		return
-	}
-
-	timber, err := ConvertBytesToTimber(buf.Bytes())
-	_ = timber.Context().AppMaxTPS
-
-	/* Send Timber Referring to this code :
-	topic := timber.Context().KafkaTopic + suffix
-
-	maxTokenIfNotExist := timber.Context().AppMaxTPS
-
-	if s.limiter.IsHitLimit(topic, maxTokenIfNotExist) {
-		return
-	}
-
-	var newTopicCreated bool
-
-	if !s.admin.Exist(topic) {
-		numPartitions := timber.Context().KafkaPartition
-		replicationFactor := timber.Context().KafkaReplicationFactor
-
-		log.Infof("%s is not exist. Creating topic with partition:%v replication_factor:%v", topic, numPartitions, replicationFactor)
-
-		err = s.admin.CreateTopic(topic, numPartitions, replicationFactor)
-		if err != nil {
-			onCreateTopicError(rw, err)
-			return
-		}
-
-		s.admin.AddTopic(topic)
-		s.sendCreateTopicEvents(topic)
-		newTopicCreated = true
-	}
-
-	err = s.sendLogs(topic, timber)
-	if err != nil {
-		onStoreError(rw, err)
-		return
-	}
-	*/
-}
-
-func handleMux(conn io.ReadWriteCloser, cfg *baritoKCPConfig) {
+func (s *baritoProducerServiceKCP) handleMux(conn io.ReadWriteCloser) {
 	smuxCfg := smux.DefaultConfig()
-	smuxCfg.MaxReceiveBuffer = cfg.SockBuf
-	smuxCfg.KeepAliveInterval = time.Duration(cfg.KeepAlive) * time.Second
+	smuxCfg.MaxReceiveBuffer = s.config.SockBuf
+	smuxCfg.KeepAliveInterval = time.Duration(s.config.KeepAlive) * time.Second
 
 	mux, err := smux.Server(conn, smuxCfg)
 
@@ -125,6 +83,54 @@ func handleMux(conn io.ReadWriteCloser, cfg *baritoKCPConfig) {
 			log.Errorf("%s\n", err.Error())
 			return
 		}
-		go handleClient(stream)
+		go s.handleClient(stream)
 	}
+}
+
+func (s *baritoProducerServiceKCP) decodePacket(r io.Reader) ([]byte, error) {
+	var header KCPPacketHeader
+	var headerBytes [48]byte
+
+	n, err := r.Read(headerBytes[0:])
+
+	if err != nil {
+		return nil, err
+	}
+
+	if n < len(headerBytes) {
+		return nil, errors.New("Error reading header")
+	}
+
+	err = header.UnmarshalBinary(headerBytes[0:])
+
+	if err != nil {
+		return nil, err
+	}
+
+	buf := make([]byte, header.Length)
+
+	n, err = r.Read(buf)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if uint32(n) < header.Length {
+		return nil, fmt.Errorf("Length doesn't equal [header %d != payload %d]", header.Length, n)
+	}
+
+	return buf, nil
+}
+
+func (s *baritoProducerServiceKCP) handleClient(stream io.ReadCloser) {
+	defer stream.Close()
+
+	payload, err := s.decodePacket(stream)
+
+	if nil != err {
+		log.Errorf("Error decoding packet!")
+		return
+	}
+
+	fmt.Printf("Received: '%s\n'", string(payload))
 }

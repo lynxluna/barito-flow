@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"testing"
 )
 
@@ -16,13 +17,19 @@ func TestKCPHeader(t *testing.T) {
 		Length:    0x07FC,
 	}
 
+	const expected = "424c5251000007fc000000005b629e14b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+
 	copy(kcpHeader.Signature[0:], sign)
 
 	t.Run("Header Encoding", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		binary.Write(&buf, binary.LittleEndian, kcpHeader)
+		binary.Write(&buf, binary.BigEndian, kcpHeader)
 
-		t.Logf("% x", buf.Bytes())
+		binhex := fmt.Sprintf("%x", buf.Bytes())
+
+		if binhex != expected {
+			t.Fatalf("Binhex is not equal than expected")
+		}
 	})
 }
