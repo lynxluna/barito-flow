@@ -14,25 +14,40 @@ some of the unreliability.
 
 0                       4           8
 +-----------------------+-----------+
-| 'BLRQ' (0x0x51524C42) | CRC32     |
-+-----------------------+-----------+ 8
-| ulen                  | clen      |
-+-----------------------+-----------+ 16
-|      TIMESTAMP (64-BIT)           |
-+-----------------------------------+ 24
-|        RESERVED                   |
-+-----------------------------------+ 32
+| 'BLRQ'                | ulen      |
++-----------------------------------+ 8
+| TIMESTAMP (64-bit)                |
++-----------------------------------+ 16
+|                                   |
++                                   + 24
+|  SIGNATURE                        |
++                                   + 32 
+|                                   |
++                                   + 40
+|                                   |
++-----------------------------------+ 48
 |                                   |
 |     LOG DATA (variable length)    |
 |                                   |
 
-The packet is started with `BARL' character to signify the start of the packet signature.
+The length sent is the byte length not the string length as
+they can differ. See: https://ykode.id/under-the-bonnet-representing-characters-and-strings-ff7cec26ee3c .
 
-- Flags : The Flags (as explained below)
-- crc32 : checksum of the log data
-- ulen  : Uncompressed length
-- clen  : Compressed length, if not compressed SHOULD BE 0
+- `BLRQ` is the packet header, "Barito Log ReQuest".
+- `ulen` is the byte length of the data.
+- `SIGNATURE` is 256-bit long, enough for SHA-256. Signature is implementation-defined.
+- `LOG DATA` is the log text and whatever you want to attach. Started at offset 48.
 
-All length should be a BYTE length not the string length as they may differ.
+## Compression
 
+As log usually includes a lot of text, we'll need some form of
+compression to reduce network bandwidth. Compression is done in
+protocol level using Google
+Snappy. See: https://en.wikipedia.org/wiki/Snappy_(compression).
+
+## Optimisation
+
+The protocol/connection is multiplexed together using
+smux https://github.com/xtaci/smux. This includes token bucket for
+throttling so we don't DDoS ourselves.
 
