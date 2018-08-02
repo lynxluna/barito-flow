@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	kcp "github.com/xtaci/kcp-go"
 	"github.com/xtaci/smux"
+	emoji "gopkg.in/kyokomi/emoji.v1"
 	"io"
 	"time"
 )
@@ -43,6 +44,10 @@ func newBaritoProducerServiceKCP(factory KafkaFactory, addr string, maxTps int, 
 }
 
 func (s *baritoProducerServiceKCP) Start() error {
+
+	msg := emoji.Sprint("Starting producer using Supercharged protocol :rocket::rocket::rocket::muscle: ..")
+	log.Info(msg)
+
 	listener, err := kcp.ListenWithOptions(s.config.addr, nil, 0, 0)
 
 	if err != nil {

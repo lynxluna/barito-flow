@@ -48,7 +48,8 @@ func ActionBaritoProducerService(c *cli.Context) (err error) {
 
 	factory := flow.NewKafkaFactory(kafkaBrokers, config)
 
-	srv := flow.NewBaritoProducerService(
+	srv := flow.NewBaritoProducerServiceWithProtocol(
+		flow.ProtocolSuperCharge,
 		factory,
 		address,
 		maxTps,
